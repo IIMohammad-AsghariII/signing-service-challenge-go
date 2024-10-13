@@ -1,0 +1,170 @@
+definitions:
+  api.DeviceRequest:
+    properties:
+      algorithm:
+        description: JSON label for Algorithm
+        type: string
+      id:
+        description: JSON label for ID
+        type: string
+      label:
+        description: JSON label for Label (optional)
+        type: string
+    type: object
+  api.DeviceResponse:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      publicKey:
+        type: string
+      signatureCount:
+        type: integer
+    type: object
+  api.ErrorResponse:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+    type: object
+  api.SignTransactionRequest:
+    properties:
+      data:
+        description: JSON label for Data
+        type: string
+      deviceId:
+        description: JSON label for DeviceID
+        type: string
+    type: object
+  api.SignTransactionResponse:
+    properties:
+      signature:
+        type: string
+      signedData:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v0/create-signature-device:
+    post:
+      consumes:
+      - application/json
+      description: Create a new signature device with a specified ID, label, and algorithm
+      parameters:
+      - description: Device information
+        in: body
+        name: device
+        required: true
+        schema:
+          $ref: '#/definitions/api.DeviceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/api.DeviceResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Create a new signature device
+      tags:
+      - devices
+  /api/v0/device:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve information about a specific signature device using its
+        ID
+      parameters:
+      - description: Device ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/api.DeviceResponse'
+        "400":
+          description: Device ID is required
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Device not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get a signature device by ID
+      tags:
+      - devices
+  /api/v0/devices:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all signature devices
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            items:
+              $ref: '#/definitions/api.DeviceResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: List all signature devices
+      tags:
+      - devices
+  /api/v0/sign-transaction:
+    post:
+      consumes:
+      - application/json
+      description: Sign the transaction data with the specified device
+      parameters:
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/api.SignTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful response
+          schema:
+            $ref: '#/definitions/api.SignTransactionResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Device not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Sign a transaction
+      tags:
+      - transactions
+swagger: "2.0"
