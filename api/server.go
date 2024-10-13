@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	_ "github.com/fiskaly/coding-challenges/signing-service-challenge/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
@@ -35,6 +37,16 @@ func (s *Server) Run() error {
 	mux.Handle("/api/v0/health", http.HandlerFunc(s.Health))
 
 	// TODO: register further HandlerFuncs here ...
+	// Register the endpoint for creating a signature device
+	mux.Handle("/api/v0/create-signature-device", http.HandlerFunc(s.CreateSignatureDeviceHandler))
+	// Register the endpoint for signing a transaction
+	mux.Handle("/api/v0/sign-transaction", http.HandlerFunc(s.SignTransactionHandler))
+	// Register the endpoint for listing all signature devices
+	mux.Handle("/api/v0/devices", http.HandlerFunc(s.ListSignatureDevicesHandler))
+	// Register the endpoint for getting a specific signature device by ID
+	mux.Handle("/api/v0/device", http.HandlerFunc(s.GetSignatureDeviceByIdHandler))
+	// Register the Swagger UI for API documentation
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	return http.ListenAndServe(s.listenAddress, mux)
 }
