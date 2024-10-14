@@ -45,19 +45,6 @@ func (s *DeviceService) CreateSignatureDevice(req *request.DeviceRequest) (*resp
 	if err = s.ValidateDeviceRequest(req); err != nil {
 		return nil, err
 	}
-	// Check for duplicate ID
-	existingDevice, err := s.store.GetDevice(req.ID)
-	if err != nil {
-		// Assume if the device does not exist, a specific error like ErrNotFound is returned
-		if err.Error() != "device not found" { // If another error occurs, return it
-			return nil, errors.New("failed to check existing device")
-		}
-	}
-
-	// If the device exists, return a duplicate ID error
-	if existingDevice != nil {
-		return nil, errors.New("device with this ID already exists")
-	}
 
 	// Generate key pair based on the algorithm using the factory.
 	factory := crypto.NewKeyPairFactory()
@@ -74,6 +61,10 @@ func (s *DeviceService) CreateSignatureDevice(req *request.DeviceRequest) (*resp
 	// Create and store the device
 	device, err := s.store.AddDevice(req.ID, req.Label, domain.AlgorithmType(req.Algorithm), string(publicKey), string(privateKey), "")
 	if err != nil {
+
+		if err.Error() == "device with this ID already exists" {
+			return nil, errors.New("device with this ID already exists")
+		}
 		return nil, errors.New("failed to add device")
 	}
 

@@ -78,10 +78,13 @@ func (s *Server) CreateSignatureDeviceHandler(w http.ResponseWriter, r *http.Req
 	// Create the signature device using the device service
 	deviceResponse, err := deviceService.CreateSignatureDevice(&req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err.Error() == "device with this ID already exists" {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		http.Error(w, "failed to add device", http.StatusInternalServerError)
 		return
 	}
-
 	// Set the response header and encode the response to JSON
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

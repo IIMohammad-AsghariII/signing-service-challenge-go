@@ -25,6 +25,9 @@ func (repo *InMemoryDeviceRepository) AddDevice(id, label string, algorithm doma
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
+	if _, exists := repo.devices[id]; exists {
+		return nil, errors.New("device with this ID already exists")
+	}
 	device := domain.NewSignatureDevice(id, label, algorithm, publicKey, privateKey, lastSignature)
 	repo.devices[device.GetID()] = device
 	return device, nil
@@ -49,7 +52,7 @@ func (repo *InMemoryDeviceRepository) ListDevices() ([]*domain.SignatureDevice, 
 	defer repo.mu.RUnlock()
 
 	if len(repo.devices) == 0 {
-		return nil, errors.New("no devices found") 
+		return nil, errors.New("no devices found")
 	}
 
 	devices := make([]*domain.SignatureDevice, 0, len(repo.devices))

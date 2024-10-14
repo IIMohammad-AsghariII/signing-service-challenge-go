@@ -41,10 +41,21 @@ func NewSQLiteDeviceRepository(dataSourceName string) (DeviceRepository, error) 
 
 // AddDevice saves a new SignatureDevice to the repository
 func (repo *SQLiteDeviceRepository) AddDevice(id, label string, algorithm domain.AlgorithmType, publicKey, privateKey, lastSignature string) (*domain.SignatureDevice, error) {
+	// Check if device already exists in the database
+	var count int
+	querySQL := `SELECT COUNT(*) FROM devices WHERE id = ?`
+	err := repo.db.QueryRow(querySQL, id).Scan(&count)
+	if err != nil {
+		return nil, err // Handle error if query fails
+	}
+	if count > 0 {
+		return nil, errors.New("device with this ID already exists")
+	}
+
 	device := domain.NewSignatureDevice(id, label, algorithm, publicKey, privateKey, lastSignature)
 
 	insertSQL := `INSERT INTO devices (id, label, algorithm, publicKey, privateKey, lastSignature, signatureCount) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err := repo.db.Exec(insertSQL, device.GetID(), device.GetLabel(), device.GetAlgorithm(), device.GetPublicKey(), device.GetPrivateKey(), device.GetLastSignature(), device.GetSignatureCount())
+	_, err = repo.db.Exec(insertSQL, device.GetID(), device.GetLabel(), device.GetAlgorithm(), device.GetPublicKey(), device.GetPrivateKey(), device.GetLastSignature(), device.GetSignatureCount())
 	if err != nil {
 		return nil, err
 	}
