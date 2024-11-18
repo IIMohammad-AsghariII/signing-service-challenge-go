@@ -14,7 +14,7 @@ import (
 
 // Setup a new server for testing
 func setup() *api.Server {
-	return api.NewServer(":8080") // دسترسی به NewServer از بسته api
+	return api.NewServer(":8080")
 }
 
 // TestCreateSignatureDeviceHandler tests the CreateSignatureDeviceHandler function

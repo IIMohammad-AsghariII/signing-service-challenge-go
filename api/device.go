@@ -65,34 +65,32 @@ func init() {
 func (s *Server) CreateSignatureDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the request method is POST
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	var req request.DeviceRequest
 	// Decode the incoming request body into req
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	// Create the signature device using the device service
 	deviceResponse, err := deviceService.CreateSignatureDevice(&req)
 	if err != nil {
 		if err.Error() == "device with this ID already exists" {
-			http.Error(w, err.Error(), http.StatusConflict)
+			WriteErrorResponse(w, http.StatusConflict, err.Error())
+			return
+		} else if err.Error() == "invalid algorithm" {
+			WriteErrorResponse(w, http.StatusUnprocessableEntity, err.Error())
+			return
+		} else {
+			WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 	// Set the response header and encode the response to JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	//	json.NewEncoder(w).Encode(deviceResponse)
-	if err := json.NewEncoder(w).Encode(deviceResponse); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	WriteAPIResponse(w, http.StatusOK, deviceResponse)
 }
 
 // SignTransactionHandler API handler for signing a transaction
@@ -110,30 +108,29 @@ func (s *Server) CreateSignatureDeviceHandler(w http.ResponseWriter, r *http.Req
 func (s *Server) SignTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the request method is POST
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	var req request.SignTransactionRequest
 	// Decode the incoming request body into req
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	// Sign the transaction using the device service
 	signResponse, err := deviceService.SignTransaction(&req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		if err.Error() == "device not found" {
+			WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		} else {
+			WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	// Set the response header and encode the response to JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	//json.NewEncoder(w).Encode(signResponse)
-	if err := json.NewEncoder(w).Encode(signResponse); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	WriteAPIResponse(w, http.StatusOK, signResponse)
 }
 
 // ListSignatureDevicesHandler API handler for listing signature devices
@@ -148,23 +145,17 @@ func (s *Server) SignTransactionHandler(w http.ResponseWriter, r *http.Request) 
 func (s *Server) ListSignatureDevicesHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the request method is GET
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 	// Retrieve the list of devices from the device service
 	devices, err := deviceService.ListSignatureDevices()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	// Set the response header and encode the response to JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	//json.NewEncoder(w).Encode(devices)
-	if err := json.NewEncoder(w).Encode(devices); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	WriteAPIResponse(w, http.StatusOK, devices)
 }
 
 // GetSignatureDeviceByIdHandler API handler for retrieving information about a specific device by ID
@@ -182,28 +173,21 @@ func (s *Server) ListSignatureDevicesHandler(w http.ResponseWriter, r *http.Requ
 func (s *Server) GetSignatureDeviceByIdHandler(w http.ResponseWriter, r *http.Request) {
 	// Ensure the request method is GET
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 	// Get the device ID from the query parameters
 	deviceID := r.URL.Query().Get("id")
-	//deviceID := r.URL.Path[len("/api/v0/devices/"):]
 	if deviceID == "" {
-		http.Error(w, "Device ID is required", http.StatusBadRequest)
+		WriteErrorResponse(w, http.StatusBadRequest, "Device ID is required")
 		return
 	}
 	// Retrieve the device information using the device service
 	deviceResponse, err := deviceService.GetSignatureDeviceById(deviceID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		WriteErrorResponse(w, http.StatusNotFound, err.Error())
 		return
 	}
 	// Set the response header and encode the response to JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	//json.NewEncoder(w).Encode(deviceResponse)
-	if err := json.NewEncoder(w).Encode(deviceResponse); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	WriteAPIResponse(w, http.StatusOK, deviceResponse)
 }

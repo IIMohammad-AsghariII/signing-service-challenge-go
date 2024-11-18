@@ -20,9 +20,7 @@ type HealthResponse struct {
 //	405: ErrorResponse
 func (s *Server) Health(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
-		WriteErrorResponse(response, http.StatusMethodNotAllowed, []string{
-			http.StatusText(http.StatusMethodNotAllowed),
-		})
+		WriteErrorResponse(response, http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 		return
 	}
 

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/api"
 	_ "github.com/fiskaly/coding-challenges/signing-service-challenge/api"
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/payload/response"
@@ -16,7 +15,6 @@ import (
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/utils"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -111,31 +109,8 @@ func verifySignatureRsa(publicKeyStr, signatureStr, signedDataStr string) (bool,
 		return false, err
 	}
 
-	// Parse signedData
-	firstUnderscoreIndex := strings.Index(signedDataStr, "_")
-	lastUnderscoreIndex := strings.LastIndex(signedDataStr, "_")
-
-	if firstUnderscoreIndex == -1 || lastUnderscoreIndex == -1 || firstUnderscoreIndex == lastUnderscoreIndex {
-		return false, errors.New("invalid signed data format")
-	}
-
-	// Extract parts
-	signatureCounter := signedDataStr[:firstUnderscoreIndex]
-	dataToBeSigned := signedDataStr[firstUnderscoreIndex+1 : lastUnderscoreIndex]
-	lastSignature := signedDataStr[lastUnderscoreIndex+1:]
-
-	// Display values for verification
-	//fmt.Println("Signature:", signatureStr)
-	//fmt.Println("Data To Be Signed:", dataToBeSigned)
-	//fmt.Println("Last Signature:", lastSignature)
-	//fmt.Println("Signature Counter:", signatureCounter)
-
-	// Create secured data to be signed
-	securedDataToBeSigned := fmt.Sprintf("%s_%s_%s", signatureCounter, dataToBeSigned, lastSignature)
-	//fmt.Println("Secured Data To Be Signed:", securedDataToBeSigned)
-
 	// Hash the data
-	hashed := utils.HashData(securedDataToBeSigned)
+	hashed := utils.HashData(signedDataStr)
 	//fmt.Printf("Hashed Data: %x\n", hashed)
 
 	// Verify the signature

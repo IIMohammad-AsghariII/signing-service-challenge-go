@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewSignatureDevice(t *testing.T) {
-	// داده‌های نمونه
+	// Sample data
 	id := "device-1"
 	label := "Test Device"
 	algorithm := domain.AlgorithmType("RSA")
@@ -15,16 +15,16 @@ func TestNewSignatureDevice(t *testing.T) {
 	privateKey := "private-key"
 	lastSignature := "signature-1"
 
-	// ایجاد دستگاه جدید
+	// Create new device
 	device := domain.NewSignatureDevice(id, label, algorithm, publicKey, privateKey, lastSignature)
 
-	// بررسی مقادیر اولیه
+	// Check the initial values
 	assert.Equal(t, id, device.GetID())
 	assert.Equal(t, label, device.GetLabel())
 	assert.Equal(t, algorithm, device.GetAlgorithm())
 	assert.Equal(t, publicKey, device.GetPublicKey())
 	assert.Equal(t, privateKey, device.GetPrivateKey())
-	assert.Equal(t, uint64(0), device.GetSignatureCount()) // مقدار امضای اولیه 0 است
+	assert.Equal(t, uint64(0), device.GetSignatureCount()) // default value is zero
 	assert.Equal(t, lastSignature, device.GetLastSignature())
 }
 

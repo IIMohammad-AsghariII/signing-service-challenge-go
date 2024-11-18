@@ -59,34 +59,23 @@ func WriteInternalError(w http.ResponseWriter) {
 
 // WriteErrorResponse takes an HTTP status code and a slice of errors
 // and writes those as an HTTP error response in a structured format.
-func WriteErrorResponse(w http.ResponseWriter, code int, errors []string) {
+func WriteErrorResponse(w http.ResponseWriter, code int, error string) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-
-	errorResponse := ErrorResponse{
-		Errors: errors,
-	}
-
-	bytes, err := json.Marshal(errorResponse)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(error); err != nil {
 		WriteInternalError(w)
+
 	}
 
-	w.Write(bytes)
 }
 
 // WriteAPIResponse takes an HTTP status code and a generic data struct
 // and writes those as an HTTP response in a structured format.
 func WriteAPIResponse(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-
-	response := Response{
-		Data: data,
-	}
-
-	bytes, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		WriteInternalError(w)
-	}
 
-	w.Write(bytes)
+	}
 }
